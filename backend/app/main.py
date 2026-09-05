@@ -1,6 +1,6 @@
-
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+
 from app.database import Base, engine
 from app.models import AuditLog, Customer, RecoveryCase
 from app.routes.recovery import router as recovery_router
@@ -15,25 +15,30 @@ app = FastAPI(
 )
 
 
-# Create database tables
+# Create database tables if they do not already exist.
 Base.metadata.create_all(bind=engine)
 
 
-# Register API routers
+# API routes
 app.include_router(webhook_router)
 app.include_router(recovery_router)
 app.include_router(dashboard_router)
 
+
+# CORS
+# Local development + deployed Netlify frontend.
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "http://localhost:3000",
         "http://127.0.0.1:3000",
+        "https://meek-medovik-88940b.netlify.app",
     ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
 
 @app.get("/")
 def root():
@@ -46,6 +51,4 @@ def root():
 
 @app.get("/health")
 def health():
-    return {
-        "status": "healthy",
-    }
+    return {"status": "healthy"}
